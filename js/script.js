@@ -20,22 +20,21 @@ function loadPlaces(position) {
         &v=${params.version}`;
 	return fetch(endpoint)
 		.then((res) => {
-			return res.text()  // レスポンスをテキストとして取得
-				.then((text) => {
-					try {
-						// テキストをJSONに変換
-						const json = JSON.parse(text);
-						return json.response.venues;
-					} catch (e) {
-						// JSON変換に失敗した場合、エラーとレスポンステキストを表示
-						console.error('JSON parse error:', e);
-						alert('JSON parse error: ' + e.message + '\nResponse text: ' + text);
-						throw e;
-					}
+			if (!res.ok) {
+				// HTTPステータスコードが200番台以外の場合
+				return res.text().then(text => {
+					throw new Error(text);
 				});
+			}
+			return res.json();
+		})
+		.then((resp) => {
+			// 成功した場合の処理
+			alert('Successfully fetched places.');
+			return resp.response.venues;
 		})
 		.catch((err) => {
-			// その他のエラーを表示
+			// エラーが発生した場合の処理
 			console.error('Error with places API', err);
 			alert('Error with places API: ' + err.message);
 		});
@@ -71,7 +70,7 @@ window.onload = () => {
 	},
 		(err) => {
 			console.error('Error in retrieving position', err),
-				alert('Error in retrieving position: ' + err.message);
+			alert('Error in retrieving position: ' + err.message);
 		},
 		{
 			enableHighAccuracy: true,
