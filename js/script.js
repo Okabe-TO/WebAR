@@ -1,45 +1,35 @@
 // getting places from APIs
-function loadPlaces(position) {
+async function loadPlaces(position) {
 	const params = {
-		radius: 300,    // search places not farther than this value (in meters)
+		radius: 300,  // search places not farther than this value (in meters)
 		clientId: 'ZDOZ0F0ISA02MVY51S020IVXIPJH4UMPF0TBSZHXKQSEEVTB',
 		clientSecret: 'LUKLF4QUWOVWUBCMF3WVGKTKTAHJ3K0XSXQSP5NXQX4LYIRR',
-		version: '20300101',    // foursquare versioning, required but unuseful for this demo
+		version: '20230827',  // Update this to the latest version
 	};
 
-	// CORS Proxy to avoid CORS problems
-	const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-
-	// Foursquare API (limit param: number of maximum places to fetch)
-	const endpoint = `${corsProxy}https://api.foursquare.com/v2/venues/search?intent=checkin
+	// Update the endpoint URL according to the latest API version
+	const endpoint = `https://api.foursquare.com/v3/venues/search?intent=checkin
         &ll=${position.latitude},${position.longitude}
         &radius=${params.radius}
         &client_id=${params.clientId}
         &client_secret=${params.clientSecret}
         &limit=30
         &v=${params.version}`;
-	return fetch(endpoint)
-		.then((res) => {
-			if (!res.ok) {
-				// HTTPステータスコードが200番台以外の場合
-				return res.text().then(text => {
-					throw new Error(text);
-				});
-			}
-			return res.json();
-		})
-		.then((resp) => {
-			// 成功した場合の処理
-			alert('Successfully fetched places.');
-			return resp.response.venues;
-		})
-		.catch((err) => {
-			// エラーが発生した場合の処理
-			console.error('Error with places API', err);
-			alert('Error with places API: ' + err.message);
-		});
-};
 
+	try {
+		const res = await fetch(endpoint);
+		if (!res.ok) {
+			const text = await res.text();
+			throw new Error(text);
+		}
+		const json = await res.json();
+		alert('Successfully fetched places.');
+		return json.response.venues;
+	} catch (err) {
+		console.error('Error with places API', err);
+		alert('Error with places API: ' + err.message);
+	}
+}
 
 window.onload = () => {
 	const scene = document.querySelector('a-scene');
