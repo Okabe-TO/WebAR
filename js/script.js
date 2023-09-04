@@ -27,6 +27,7 @@ function loadPlaces(position) {
 		})
 		.catch((err) => {
 			console.error('Error with places API', err);
+			alert('Error with places API: ' + err.message);
 		})
 };
 
@@ -58,7 +59,10 @@ window.onload = () => {
 				});
 			})
 	},
-		(err) => console.error('Error in retrieving position', err),
+		(err) => {
+			console.error('Error in retrieving position', err),
+				alert('Error in retrieving position: ' + err.message);
+		},
 		{
 			enableHighAccuracy: true,
 			maximumAge: 0,
