@@ -1,51 +1,21 @@
-// getting places from APIs
-async function loadPlaces(position) {
-	const params = {
-		radius: 300,  // search places not farther than this value (in meters)
-		clientId: 'ZDOZ0F0ISA02MVY51S020IVXIPJH4UMPF0TBSZHXKQSEEVTB',
-		clientSecret: 'LUKLF4QUWOVWUBCMF3WVGKTKTAHJ3K0XSXQSP5NXQX4LYIRR',
-		version: '20230827',  // Update this to the latest version
-	};
-
-	// Update the endpoint URL according to the latest API version
-	const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-	const endpoint = `${corsProxy}https://api.foursquare.com/v3/venues/search?intent=checkin
-        &ll=${position.latitude},${position.longitude}
-        &radius=${params.radius}
-        &client_id=${params.clientId}
-        &client_secret=${params.clientSecret}
-        &limit=30
-        &v=${params.version}`;
-
-	try {
-		const res = await fetch(endpoint);
-		if (!res.ok) {
-			const text = await res.text();
-			throw new Error(text);
-		}
-		const json = await res.json();
-		alert('Successfully fetched places.');
-		return json.response.venues;
-	} catch (err) {
-		console.error('Error with places API', err);
-		alert('Error with places API: ' + err.message);
-	}
-}
-
 window.onload = () => {
 	const scene = document.querySelector('a-scene');
 
-	// first get current user location
+	// 最初に現在のユーザーの位置を取得
 	return navigator.geolocation.getCurrentPosition(function (position) {
 
-		// than use it to load from remote APIs some places nearby
-		loadPlaces(position.coords)
+		// Firebase Cloud FunctionのURL
+		const functionUrl = `https://us-central1-webar-app-398016.cloudfunctions.net/getPlaces?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}`;
+
+		// Firebase Cloud Functionを呼び出す
+		fetch(functionUrl)
+			.then(response => response.json())
 			.then((places) => {
 				places.forEach((place) => {
 					const latitude = place.location.lat;
 					const longitude = place.location.lng;
 
-					// add place name
+					// 場所の名前を追加
 					const placeText = document.createElement('a-link');
 					placeText.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
 					placeText.setAttribute('title', place.name);
@@ -58,15 +28,18 @@ window.onload = () => {
 					scene.appendChild(placeText);
 				});
 			})
+			.catch((err) => {
+				console.error('Error in retrieving places', err);
+				alert('Error in retrieving places: ' + err.message);
+			});
 	},
 		(err) => {
-			console.error('Error in retrieving position', err),
+			console.error('Error in retrieving position', err);
 			alert('Error in retrieving position: ' + err.message);
 		},
 		{
 			enableHighAccuracy: true,
 			maximumAge: 0,
 			timeout: 27000,
-		}
-	);
+		});
 };
