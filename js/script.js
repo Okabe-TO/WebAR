@@ -8,7 +8,8 @@ async function loadPlaces(position) {
 	};
 
 	// Update the endpoint URL according to the latest API version
-	const endpoint = `https://api.foursquare.com/v3/venues/search?intent=checkin
+	const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+	const endpoint = `${corsProxy}https://api.foursquare.com/v3/venues/search?intent=checkin
         &ll=${position.latitude},${position.longitude}
         &radius=${params.radius}
         &client_id=${params.clientId}
