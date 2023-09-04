@@ -16,20 +16,29 @@ function loadPlaces(position) {
         &radius=${params.radius}
         &client_id=${params.clientId}
         &client_secret=${params.clientSecret}
-        &limit=30 
+        &limit=30
         &v=${params.version}`;
 	return fetch(endpoint)
 		.then((res) => {
-			alert(res.text);
-			return res.json()
-				.then((resp) => {
-					return resp.response.venues;
-				})
+			return res.text()  // レスポンスをテキストとして取得
+				.then((text) => {
+					try {
+						// テキストをJSONに変換
+						const json = JSON.parse(text);
+						return json.response.venues;
+					} catch (e) {
+						// JSON変換に失敗した場合、エラーとレスポンステキストを表示
+						console.error('JSON parse error:', e);
+						alert('JSON parse error: ' + e.message + '\nResponse text: ' + text);
+						throw e;
+					}
+				});
 		})
 		.catch((err) => {
+			// その他のエラーを表示
 			console.error('Error with places API', err);
 			alert('Error with places API: ' + err.message);
-		})
+		});
 };
 
 
